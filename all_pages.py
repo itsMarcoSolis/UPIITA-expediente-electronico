@@ -1,10 +1,10 @@
 from nicegui import ui
-from pages.alumnos import render_page
-from pages.asociaciones import script_generator
+import pages.alumnos
+import pages.asociaciones
 
 def create() -> None:
-    ui.page('/alumnos/')(render_page)
-    ui.page('/asociaciones/')(script_generator)
+    ui.page('/alumnos/')(pages.alumnos.render_page)
+    ui.page('/asociaciones/')(pages.asociaciones.render_page)
 
 if __name__ == '__main__':
     create()
