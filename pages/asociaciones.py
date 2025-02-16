@@ -4,6 +4,7 @@ from models.asociacion import Asociacion
 from models.grupo import Grupo
 from models.miembro_asociacion import MiembroAsociacion
 from models.alumno import Alumno
+from models.miembro_grupo import MiembroGrupo
 
 
 def render_page():
@@ -104,5 +105,29 @@ def render_page():
                                             app.storage.general.pop(f'edit_{g.id}', None),
                                             actualizar_lista()
                                         ])
+                                    with ui.column().classes('ml-12'):  # Increased indentation
+                                        ui.markdown("#### Miembros del Grupo")
+                                        
+                                        # Add member to group
+                                        with ui.row().classes('items-center'):
+                                            estudiantes = Alumno.obtener_alumnos()
+                                            opciones_estudiantes = {a.id: f"{a.boleta} - {a.nombre}" for a in estudiantes}
+                                            
+                                            ui.select(opciones_estudiantes, label="Agregar estudiante").bind_value_to(
+                                                grupo, 'nuevo_miembro').classes('w-64')
+                                            ui.button(icon='person_add', on_click=lambda g=grupo: [
+                                                MiembroGrupo.agregar_miembro_grupo(g.nuevo_miembro, g.id),
+                                                actualizar_lista()
+                                            ])
+                                        
+                                        # List current group members
+                                        with ui.column().classes('ml-4'):
+                                            for miembro in MiembroGrupo.obtener_miembros_grupo(grupo.id):
+                                                with ui.row().classes('items-center'):
+                                                    ui.label(f"{miembro.alumno.boleta} - {miembro.alumno.nombre} ({miembro.fecha_ingreso.strftime('%d/%m/%Y')})")
+                                                    ui.button(icon='person_remove', color='red', on_click=lambda m=miembro: [
+                                                        MiembroGrupo.eliminar_miembro_grupo(m.id),
+                                                        actualizar_lista()
+                                                    ]).classes('ml-2')
         
         actualizar_lista()
