@@ -9,6 +9,7 @@ class Asociacion(Base):
     asesor = Column(String, nullable=False)
     miembros = relationship("MiembroAsociacion", back_populates="asociacion")
     grupos = relationship("Grupo", back_populates="asociacion")
+    archivos = relationship("Archivo", back_populates="asociacion", cascade="all, delete-orphan")
 
     @staticmethod
     def agregar_asociacion(nombre: str, asesor: str):

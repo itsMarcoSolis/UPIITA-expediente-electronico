@@ -12,6 +12,7 @@ class Alumno(Base):
     fecha_registro = Column(DateTime, default=datetime.utcnow)
     asociaciones = relationship("MiembroAsociacion", back_populates="alumno")
     grupos = relationship("MiembroGrupo", back_populates="alumno")
+    archivos = relationship("Archivo", back_populates="alumno", cascade="all, delete-orphan")  
 
     @staticmethod
     def agregar_alumno(boleta, nombre, correo):
