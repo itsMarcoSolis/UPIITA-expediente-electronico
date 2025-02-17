@@ -24,16 +24,24 @@ def render_page():
             ])
 
         ui.separator()
-        ui.markdown("## Lista de Alumnos")
+        
+        with ui.row().style("justify-content: space-between; width: 100%"):
+            ui.markdown("## Lista de Alumnos")
+            search_input = ui.input(placeholder="Buscar por boleta o nombre...").on("change", lambda: actualizar_lista(search_input.value))
+
         lista = ui.column()
 
-        def actualizar_lista():
+        def actualizar_lista(filtro=""):
             lista.clear()
-            for alumno in Alumno.obtener_alumnos():
+            alumnos = Alumno.obtener_alumnos()
+            alumnos_filtrados = [a for a in alumnos if filtro.lower() in a.boleta.lower() or filtro.lower() in a.nombre.lower()]
+            
+            for alumno in alumnos_filtrados:
                 with lista:
                     with ui.row():
                         ui.label(f"{alumno.id} - {alumno.boleta}, {alumno.nombre}, {alumno.correo}")
                         ui.button("Ver Archivos", on_click=lambda a=alumno: mostrar_archivos(a))
+                        ui.button("Editar", on_click=lambda a=alumno: editar_alumno(a))
 
         dialog = ui.dialog()
 
@@ -70,5 +78,20 @@ def render_page():
         def eliminar_archivo(archivo_id, alumno: Alumno):
             Archivo.eliminar_archivo(archivo_id)
             mostrar_archivos(alumno)
+
+        def editar_alumno(alumno: Alumno):
+            edit_dialog = ui.dialog()
+            with edit_dialog:
+                with ui.card():
+                    ui.label(f"Editar Alumno: {alumno.nombre}")
+                    new_nombre = ui.input("Nombre", value=alumno.nombre)
+                    new_correo = ui.input("Correo Electrónico", value=alumno.correo)
+                    ui.button("Guardar Cambios", on_click=lambda: guardar_edicion(alumno.id, new_nombre.value, new_correo.value, edit_dialog))
+            edit_dialog.open()
+
+        def guardar_edicion(alumno_id, new_nombre, new_correo, dialog):
+            Alumno.editar_alumno(alumno_id, new_nombre, new_correo)
+            dialog.close()
+            actualizar_lista()
         
         actualizar_lista()
