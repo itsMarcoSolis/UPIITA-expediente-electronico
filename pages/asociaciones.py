@@ -5,7 +5,7 @@ from models.grupo import Grupo
 from models.miembro_asociacion import MiembroAsociacion
 from models.alumno import Alumno
 from models.miembro_grupo import MiembroGrupo
-
+from utils.file_upload import mostrar_archivos
 
 def render_page():
     with theme.frame('Asociaciones'):
@@ -26,7 +26,7 @@ def render_page():
         ui.separator()
         ui.markdown("## Asociaciones Registradas")
         lista = ui.column()
-
+        expediente_dialog = ui.dialog()
         def actualizar_lista():
             lista.clear()
             for asociacion in Asociacion.obtener_asociaciones():
@@ -35,15 +35,18 @@ def render_page():
                         # Association header
                         with ui.row().classes('items-center'):
                             ui.label(f"{asociacion.nombre} - Asesor: {asociacion.asesor}")
-                            
-                            # Add Group Section
-                            with ui.input("Nuevo grupo").bind_value_to(
-                                asociacion, 'nuevo_grupo').classes('w-48'):
-                                ui.tooltip("Nombre del nuevo grupo")
-                            ui.button(icon='add', on_click=lambda a=asociacion: [
-                                Grupo.agregar_grupo(a.id, a.nuevo_grupo),
-                                actualizar_lista()
-                            ])
+
+                            # Add "View Files" Button
+                            ui.button("Ver Archivos", on_click=lambda a=asociacion: mostrar_archivos(expediente_dialog, "asociacion", a.id))
+
+                        # Add Group Section
+                        with ui.input("Nuevo grupo").bind_value_to(
+                            asociacion, 'nuevo_grupo').classes('w-48'):
+                            ui.tooltip("Nombre del nuevo grupo")
+                        ui.button(icon='add', on_click=lambda a=asociacion: [
+                            Grupo.agregar_grupo(a.id, a.nuevo_grupo),
+                            actualizar_lista()
+                        ])
                         
                         # Members management section
                         with ui.column().classes('ml-8'):
@@ -129,5 +132,4 @@ def render_page():
                                                         MiembroGrupo.eliminar_miembro_grupo(m.id),
                                                         actualizar_lista()
                                                     ]).classes('ml-2')
-        
         actualizar_lista()
