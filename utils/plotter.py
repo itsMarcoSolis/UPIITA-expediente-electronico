@@ -2,49 +2,34 @@ import pandas as pd
 from nicegui import ui
 from models.grafico import Grafico
 
-# Store global container reference
-grafico_container = None  
-
 def display_grafico(grafico):
     """
     Reads an Excel file, extracts sheet names, and allows selection.
-    Prevents multiple UI components from stacking by updating the existing container.
-
-    :param grafico: Grafico object containing details
+    Prevents UI errors by ensuring elements are created in the active session.
     """
-    global grafico_container
-
-    # Ensure we clear and reuse the same container
-    if grafico_container:
-        grafico_container.clear()
-    else:
-        grafico_container = ui.column().classes("mt-4 p-4 border border-gray-300 rounded-lg w-full")
+    container = ui.column().classes("mt-4 p-4 border border-gray-300 rounded-lg")  # No global reference
 
     # Attempt to read the file
     try:
         xls = pd.ExcelFile(grafico.archivo.ruta_archivo)  # Read Excel file
         sheet_names = xls.sheet_names  # Get sheet names
     except Exception as e:
-        with grafico_container:
+        with container:
             ui.label(f"Error al leer el archivo: {str(e)}").classes("text-red-500")
-        return grafico_container
+        return container
 
     # State to track selected sheet (default to the first one)
     selected_sheet = {"name": sheet_names[0] if sheet_names else None}
 
     def set_selected_sheet(sheet_name):
-        """
-        Updates the selected sheet and refreshes UI.
-        """
+        """ Updates the selected sheet and refreshes UI. """
         selected_sheet["name"] = sheet_name
         actualizar_info()
 
     def actualizar_info():
-        """
-        Clears and updates the UI with sheet selection.
-        """
-        grafico_container.clear()
-        with grafico_container:
+        """ Clears and updates the UI with sheet selection. """
+        container.clear()
+        with container:
             ui.label(f"{grafico.nombre}").classes("font-bold text-lg")
 
             if sheet_names:
@@ -58,11 +43,10 @@ def display_grafico(grafico):
 
             # Process the selected sheet
             if selected_sheet["name"]:
-                process_selected_sheet(xls, selected_sheet["name"], grafico_container)
+                process_selected_sheet(xls, selected_sheet["name"], container)
 
     actualizar_info()  # Load UI initially
-    return grafico_container
-
+    return container  # Return a fresh container every time
 def process_selected_sheet(xls: pd.ExcelFile, sheet_name, container):
     """
     Reads the selected sheet, identifies its type, and processes it accordingly.
@@ -76,17 +60,83 @@ def process_selected_sheet(xls: pd.ExcelFile, sheet_name, container):
         sheet_type = None
         if set(df.columns) >= {"nombre_carrera", "inscritos"}:
             sheet_type = "inscritos_por_carrera"
+        elif "materia" in df.columns:
+            sheet_type = "disponibilidad"
 
         # Step 2: Process based on sheet type
         if sheet_type == "inscritos_por_carrera":
             process_inscritos_por_carrera(df, container)
-        
+        elif sheet_type == "disponibilidad":
+            process_disponibilidad(df, container)
         else:
             with container:
                 ui.label(f"Tipo de hoja no identificado: {sheet_name}").classes("text-yellow-500")
 
     except Exception as e:
         ui.label(f"Error al procesar la hoja: {str(e)}").classes("text-red-500")
+
+def process_disponibilidad(df, container):
+    """
+    Processes a sheet that follows the 'disponibilidad' format and generates a table with progress bars inside aggrid.
+    """
+
+    # Filter only relevant columns
+    required_columns = ["grupo", "materia", "nombre de la materia", "semestre", "cupo", "inscritos", "disponibles"]
+    df = df[[col for col in required_columns if col in df.columns]].copy()
+
+    # Convert numeric columns to integers where possible
+    for col in ["cupo", "inscritos", "disponibles"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
+
+    # Calculate occupied spots
+    df["ocupacion"] = df["inscritos"]  # Now using "Inscritos" as the value
+
+    # Prepare row data for aggrid
+    row_data = []
+    for _, row in df.iterrows():
+        seats_taken = row["ocupacion"]  # Number of seats occupied
+        total_capacity = row["cupo"]
+        fill_ratio = (seats_taken / total_capacity) * 100 if total_capacity > 0 else 0  # Convert to percentage for bar width
+
+        # Define colors dynamically based on how full the class is
+        color = "#4caf50" if fill_ratio < 80 else "#f44336"  # Green if < 80% full, Red otherwise
+
+        # Generate the progress bar with actual occupied seats
+        progress_bar_html = f'''
+            <div style="width: 100px; height: 15px; background: #ddd; border-radius: 5px; position: relative;">
+                <div style="width: {fill_ratio:.1f}%; height: 100%; background: {color}; border-radius: 5px;"></div>
+                <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                            font-size: 10px; font-weight: bold; color: black;">
+                    {seats_taken} / {total_capacity}
+                </span>
+            </div>
+        '''
+        
+        row_data.append({
+            "Grupo": row["grupo"],
+            "Materia": row["materia"],
+            "Nombre de la Materia": row["nombre de la materia"],
+            "Semestre": row["semestre"],
+            "Cupo": row["cupo"],
+            "Disponibilidad": progress_bar_html  # Store the HTML inside the field
+        })
+
+    # Create the aggrid UI
+    with container:
+        ui.aggrid({
+            'defaultColDef': {'flex': 1},
+            'columnDefs': [
+                {'headerName': 'Grupo', 'field': 'Grupo'},
+                {'headerName': 'Materia', 'field': 'Materia'},
+                {'headerName': 'Nombre de la Materia', 'field': 'Nombre de la Materia'},
+                {'headerName': 'Semestre', 'field': 'Semestre'},
+                {'headerName': 'Cupo', 'field': 'Cupo'},
+                {'headerName': 'Ocupabilidad', 'field': 'Disponibilidad'},
+            ],
+            'rowData': row_data,
+            'rowSelection': 'single',
+        }, html_columns=[5]).classes("")  # Enable HTML rendering in this column
 
 
 def process_inscritos_por_carrera(df, container):

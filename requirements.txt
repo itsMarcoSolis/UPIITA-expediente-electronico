@@ -1,7 +1,9 @@
 nicegui
 nicegui[highcharts]
+pywebview
 numpy
 sqlalchemy
 pydantic
 pandas
 openpyxl
+pywin32 
