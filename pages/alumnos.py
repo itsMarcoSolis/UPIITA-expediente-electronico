@@ -4,6 +4,8 @@ from nicegui import ui
 from models.alumno import Alumno
 from utils.file_upload import mostrar_archivos
 
+CARRERAS = ["Biónica", "Energía", "ISISA", "Mecatrónica", "Telemática"]
+
 def render_page():
     with theme.frame('Alumnos'):
         ui.page_title('Alumnos')
@@ -14,7 +16,7 @@ def render_page():
             boleta = ui.input("Boleta")
             nombre = ui.input("Nombre")
             correo = ui.input("Correo electrónico")
-            carrera = ui.select(["Biónica", "Energía", "Mecatrónica", "Telemática"], label="Carrera", value="Biónica")
+            carrera = ui.select(CARRERAS, label="Carrera", value="Biónica")
             ui.button("Agregar", on_click=lambda: [
                 Alumno.agregar_alumno(boleta.value, nombre.value, correo.value, carrera.value),
                 actualizar_lista()
@@ -51,7 +53,7 @@ def render_page():
                     new_boleta = ui.input("Boleta", value=alumno.boleta)
                     new_nombre = ui.input("Nombre", value=alumno.nombre)
                     new_correo = ui.input("Correo Electrónico", value=alumno.correo)
-                    new_carrera = ui.select(["Mecatrónica", "Telemática", "Biónica", "Energía"], label="Carrera", value=alumno.carrera)
+                    new_carrera = ui.select(CARRERAS, label="Carrera", value=alumno.carrera)
                     ui.button("Guardar Cambios", on_click=lambda: guardar_edicion(alumno.id, new_boleta.value, new_nombre.value, new_correo.value, new_carrera.value, edit_dialog))
             edit_dialog.open()
 
