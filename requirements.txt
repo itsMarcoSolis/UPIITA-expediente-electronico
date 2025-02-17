@@ -1,4 +1,5 @@
 nicegui
+nicegui[highcharts]
 numpy
 sqlalchemy
 pydantic

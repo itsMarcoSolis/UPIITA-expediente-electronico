@@ -56,5 +56,67 @@ def display_grafico(grafico):
 
                 ui.label(f"📄 Hoja seleccionada: {selected_sheet['name']}").classes("mt-2 font-semibold")
 
+            # Process the selected sheet
+            if selected_sheet["name"]:
+                process_selected_sheet(xls, selected_sheet["name"], grafico_container)
+
     actualizar_info()  # Load UI initially
     return grafico_container
+
+def process_selected_sheet(xls, sheet_name, container):
+    """
+    Reads the selected sheet, identifies its type, and processes it accordingly.
+    """
+    try:
+        df = xls.parse(sheet_name)
+        df.dropna(how="all", inplace=True)  # Remove fully empty rows
+        df.columns = df.columns.str.strip().str.lower()  # Normalize column names
+        
+        # Step 1: Identify sheet type
+        sheet_type = None
+        if set(df.columns) >= {"nombre_carrera", "inscritos"}:
+            sheet_type = "inscritos_por_carrera"
+
+        # Step 2: Process based on sheet type
+        if sheet_type == "inscritos_por_carrera":
+            process_inscritos_por_carrera(df, container)
+        
+        else:
+            with container:
+                ui.label(f"Tipo de hoja no identificado: {sheet_name}").classes("text-yellow-500")
+
+    except Exception as e:
+        ui.label(f"Error al procesar la hoja: {str(e)}").classes("text-red-500")
+
+
+def process_inscritos_por_carrera(df, container):
+    """
+    Processes a sheet that follows the 'inscritos_por_carrera' format and generates a bar chart.
+    """
+    df = df[["nombre_carrera", "inscritos"]]  # Keep only relevant columns
+
+    # Remove any row where "nombre_carrera" is "Total" or "Fecha de corte"
+    total_row = df[df["nombre_carrera"].str.lower() == "total"]
+    fecha_row = df[df["nombre_carrera"].str.lower().str.contains("fecha de corte", na=False)]
+    
+    df = df[
+        ~df["nombre_carrera"].str.lower().isin(["total"]) & 
+        ~df["nombre_carrera"].str.lower().str.contains("fecha de corte", na=False)
+    ]
+
+    # Generate bar chart
+    with container:
+        chart = ui.highchart({
+            'title': False,
+            'chart': {'type': 'bar'},
+            'xAxis': {'categories': df["nombre_carrera"].tolist()},
+            'series': [{'name': 'Inscritos', 'data': df["inscritos"].tolist()}],
+        }).classes('w-full h-64')
+
+        # Display Total if exists
+        if not total_row.empty:
+            ui.label(f"Total: {total_row['inscritos'].values[0]}").classes("font-bold mt-2")
+
+        # Display Fecha de Corte if exists
+        if not fecha_row.empty:
+            ui.label(f"Fecha de corte: {fecha_row['inscritos'].values[0]}").classes("italic mt-2")
