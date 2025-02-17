@@ -27,7 +27,8 @@ def render_page():
         
         with ui.row().style("justify-content: space-between; width: 100%"):
             ui.markdown("## Lista de Alumnos")
-            search_input = ui.input(placeholder="Buscar por boleta o nombre...").on("change", lambda: actualizar_lista(search_input.value))
+            ui.input(placeholder="Buscar por boleta o nombre...", on_change=lambda e: actualizar_lista(e.value))
+
 
         lista = ui.column()
 
