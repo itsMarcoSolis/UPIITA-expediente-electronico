@@ -2,21 +2,31 @@ import pandas as pd
 from nicegui import ui
 from models.grafico import Grafico
 
+grafico_container = None  # Store reference to keep UI clean
+
 def display_grafico(grafico):
     """
     Reads an Excel file, extracts sheet names, and allows selection.
-    Prevents UI errors by ensuring elements are created in the active session.
+    Ensures only one UI container exists at a time.
     """
-    container = ui.column().classes("mt-4 p-4 border border-gray-300 rounded-lg")  # No global reference
+    global grafico_container  # Track the currently displayed graphic
+
+    # Remove the previous container if it exists
+    if grafico_container:
+        grafico_container.clear()
+        grafico_container.delete()  # Fully delete old UI
+
+    # Create new container
+    grafico_container = ui.column().classes("mt-4 p-4 border border-gray-300 rounded-lg")
 
     # Attempt to read the file
     try:
         xls = pd.ExcelFile(grafico.archivo.ruta_archivo)  # Read Excel file
         sheet_names = xls.sheet_names  # Get sheet names
     except Exception as e:
-        with container:
+        with grafico_container:
             ui.label(f"Error al leer el archivo: {str(e)}").classes("text-red-500")
-        return container
+        return grafico_container
 
     # State to track selected sheet (default to the first one)
     selected_sheet = {"name": sheet_names[0] if sheet_names else None}
@@ -28,8 +38,8 @@ def display_grafico(grafico):
 
     def actualizar_info():
         """ Clears and updates the UI with sheet selection. """
-        container.clear()
-        with container:
+        grafico_container.clear()
+        with grafico_container:
             ui.label(f"{grafico.nombre}").classes("font-bold text-lg")
 
             if sheet_names:
@@ -43,10 +53,11 @@ def display_grafico(grafico):
 
             # Process the selected sheet
             if selected_sheet["name"]:
-                process_selected_sheet(xls, selected_sheet["name"], container)
+                process_selected_sheet(xls, selected_sheet["name"], grafico_container)
 
     actualizar_info()  # Load UI initially
-    return container  # Return a fresh container every time
+    return grafico_container  # Always return the active container
+
 def process_selected_sheet(xls: pd.ExcelFile, sheet_name, container):
     """
     Reads the selected sheet, identifies its type, and processes it accordingly.

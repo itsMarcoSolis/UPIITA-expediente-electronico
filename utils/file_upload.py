@@ -173,12 +173,9 @@ def agregar_grafico(file):
     finally:
         session.close()
     
-    administrar_graficos()
-
 def eliminar_grafico(grafico_id):
     """
     Deletes a Grafico entry and its associated file.
     :param grafico_id: ID of the grafico to delete
     """
     Grafico.eliminar_grafico(grafico_id)
-    administrar_graficos()

@@ -17,7 +17,7 @@ def frame(navtitle: str):
 
     with ui.footer(value=False) as footer:
         ui.label('Footer')
-    with ui.left_drawer().classes('bg-blue-100') as left_drawer:
+    with ui.left_drawer().classes('bg-amber-50') as left_drawer:
         with ui.column():
             menu()
     with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
