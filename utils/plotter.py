@@ -98,10 +98,12 @@ def process_inscritos_por_carrera(df, container):
     # Remove any row where "nombre_carrera" is "Total" or "Fecha de corte"
     total_row = df[df["nombre_carrera"].str.lower() == "total"]
     fecha_row = df[df["nombre_carrera"].str.lower().str.contains("fecha de corte", na=False)]
+    corte_row = df[df["nombre_carrera"].str.lower().str.startswith("corte", na=False)]
     
     df = df[
         ~df["nombre_carrera"].str.lower().isin(["total"]) & 
-        ~df["nombre_carrera"].str.lower().str.contains("fecha de corte", na=False)
+        ~df["nombre_carrera"].str.lower().str.contains("fecha de corte", na=False) & 
+        ~df["nombre_carrera"].str.lower().str.startswith("corte", na=False)
     ]
 
     # Generate bar chart
@@ -120,3 +122,17 @@ def process_inscritos_por_carrera(df, container):
         # Display Fecha de Corte if exists
         if not fecha_row.empty:
             ui.label(f"Fecha de corte: {fecha_row['inscritos'].values[0]}").classes("italic mt-2")
+
+        # Display Corte row if exists
+        if not corte_row.empty:
+            corte_label = f"{corte_row['nombre_carrera'].values[0]}"
+            if len(corte_row.columns) > 1:  # Check if there's something in another column
+                extra_value = corte_row.iloc[0, 1] if pd.notna(corte_row.iloc[0, 1]) else None
+                inscritos_value = corte_row["inscritos"].values[0] if "inscritos" in corte_row else None
+
+                if extra_value and not "nan":
+                    corte_label += f": {extra_value}"
+                elif inscritos_value and not "nan":
+                    corte_label += f": {inscritos_value}"
+
+            ui.label(corte_label).classes("italic mt-2")
