@@ -9,18 +9,22 @@ CARRERAS = ["Biónica", "Energía", "ISISA", "Mecatrónica", "Telemática"]
 def render_page():
     with theme.frame('Alumnos'):
         ui.page_title('Alumnos')
-        ui.markdown('# Esta es la página de alumnos!')
+        ui.markdown('# 📚 Gestión de Alumnos')
 
-        with ui.card():
-            ui.label("Agregar nuevo alumno")
-            boleta = ui.input("Boleta")
-            nombre = ui.input("Nombre")
-            correo = ui.input("Correo electrónico")
-            carrera = ui.select(CARRERAS, label="Carrera", value="Biónica")
-            ui.button("Agregar", on_click=lambda: [
-                Alumno.agregar_alumno(boleta.value, nombre.value, correo.value, carrera.value),
-                actualizar_lista()
-            ])
+        # ✅ Collapsible Form for Adding New Student
+        with ui.expansion("Agregar nuevo alumno", icon="person_add").classes("w-full"):
+            with ui.card().classes("w-full"):
+                with ui.row().classes("items-center justify-between w-full"):
+                    boleta = ui.input("Boleta").classes("w-1/5")
+                    nombre = ui.input("Nombre").classes("w-1/5")
+                    correo = ui.input("Correo electrónico").classes("w-1/5")
+                    carrera = ui.select(CARRERAS, label="Carrera", value="Biónica").classes("w-1/5")
+                with ui.row().classes("items-center justify-center w-full"):
+                    ui.button("Agregar", on_click=lambda: [
+                        Alumno.agregar_alumno(boleta.value, nombre.value, correo.value, carrera.value),
+                        actualizar_lista()
+                    ]).classes("w-1/4")
+
 
         ui.separator()
         
