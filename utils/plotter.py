@@ -21,8 +21,8 @@ def display_grafico(grafico):
 
     # Attempt to read the file
     try:
-        xls = pd.ExcelFile(grafico.archivo.ruta_archivo)  # Read Excel file
-        sheet_names = xls.sheet_names  # Get sheet names
+        with pd.ExcelFile(grafico.archivo.ruta_archivo) as xls:  # Ensure file closes properly
+            sheet_names = xls.sheet_names  # Get sheet names
     except Exception as e:
         with grafico_container:
             ui.label(f"Error al leer el archivo: {str(e)}").classes("text-red-500")
@@ -53,20 +53,22 @@ def display_grafico(grafico):
 
             # Process the selected sheet
             if selected_sheet["name"]:
-                process_selected_sheet(xls, selected_sheet["name"], grafico_container)
+                process_selected_sheet(grafico.archivo.ruta_archivo, selected_sheet["name"], grafico_container)
 
     actualizar_info()  # Load UI initially
     return grafico_container  # Always return the active container
 
-def process_selected_sheet(xls: pd.ExcelFile, sheet_name, container):
+def process_selected_sheet(file_path, sheet_name, container):
     """
     Reads the selected sheet, identifies its type, and processes it accordingly.
     """
     try:
-        df = xls.parse(sheet_name)
+        with pd.ExcelFile(file_path) as xls:  # Reopen file to ensure it's available
+            df = xls.parse(sheet_name)
+
         df.dropna(how="all", inplace=True)  # Remove fully empty rows
         df.columns = df.columns.str.strip().str.lower()  # Normalize column names
-        
+
         # Step 1: Identify sheet type
         sheet_type = None
         if set(df.columns) >= {"nombre_carrera", "inscritos"}:

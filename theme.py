@@ -15,10 +15,6 @@ def frame(navtitle: str):
         ui.button(on_click=lambda: left_drawer.toggle(), icon='menu').props('flat color=white')
         ui.label('UPIITA - Expediente electrónico').classes('font-bold')
 
-    with ui.footer(value=False) as footer:
-        ui.label('Footer')
     with ui.left_drawer().classes('bg-amber-50') as left_drawer:
         with ui.column():
             menu()
-    with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
-        ui.button(on_click=footer.toggle, icon='contact_support').props('fab')

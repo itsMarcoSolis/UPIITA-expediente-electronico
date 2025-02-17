@@ -25,3 +25,21 @@ class Asociacion(Base):
         asociaciones = session.query(Asociacion).all()
         session.close()
         return asociaciones
+
+    @staticmethod
+    def editar_asociacion(asociacion_id: int, nuevo_nombre: str, nuevo_asesor: str):
+        """
+        Updates the name and advisor of an existing association.
+        :param asociacion_id: ID of the association to update.
+        :param nuevo_nombre: New name of the association.
+        :param nuevo_asesor: New advisor of the association.
+        """
+        session = obtener_sesion()
+        asociacion = session.query(Asociacion).filter_by(id=asociacion_id).first()
+
+        if asociacion:
+            asociacion.nombre = nuevo_nombre
+            asociacion.asesor = nuevo_asesor
+            session.commit()
+
+        session.close()

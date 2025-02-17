@@ -88,6 +88,27 @@ def mostrar_archivos(dialog, tipo, entity):
     dialog.clear()
     archivos = Archivo.obtener_archivos(tipo, entity.id)
 
+    def confirmar_eliminacion(archivo_id, archivo_nombre):
+        """
+        Displays a confirmation dialog before deleting a file.
+        """
+        confirm_dialog = ui.dialog()
+
+        with confirm_dialog:
+            with ui.card().classes("p-6 w-1/3"):
+                ui.label("⚠️ Confirmar Eliminación").classes("text-lg font-bold text-red-600")
+                ui.label(f"¿Seguro que quieres eliminar el archivo {archivo_nombre}?")
+                ui.label("Esta acción no se puede deshacer.").classes("text-sm text-gray-500 italic")
+
+                with ui.row().classes("justify-end mt-4"):
+                    ui.button("Cancelar", on_click=confirm_dialog.close).props("outline")
+                    ui.button("🗑️ Eliminar", color="red", on_click=lambda: [
+                        eliminar_archivo(dialog, archivo_id, tipo, entity),
+                        confirm_dialog.close()
+                    ])
+
+        confirm_dialog.open()
+
     with dialog:
         with ui.card().classes("w-2/3 max-w-3xl p-6"):
             ui.label(f"📁 Expediente de {entity.nombre}").classes("text-xl font-bold mb-2")
@@ -100,8 +121,10 @@ def mostrar_archivos(dialog, tipo, entity):
                         with ui.row().classes("justify-between items-center w-full p-2 border-b"):
                             ui.label(archivo.nombre_archivo).classes("flex-grow text-sm")
                             with ui.row():
-                                ui.button(icon="folder_open", on_click=lambda r=archivo.ruta_archivo: abrir_archivo(r)).props("flat round color=blue")
-                                ui.button(icon="delete", on_click=lambda a=archivo.id: eliminar_archivo(dialog, a, tipo, entity)).props("flat round color=red")
+                                ui.button("👁️ Ver", on_click=lambda r=archivo.ruta_archivo: abrir_archivo(r)).props("outline")
+                                ui.button("🗑️ Eliminar", color="red", 
+                                          on_click=lambda a=archivo.id, n=archivo.nombre_archivo: confirmar_eliminacion(a, n)
+                                          ).props("outline")
 
             ui.separator()
 
@@ -109,7 +132,7 @@ def mostrar_archivos(dialog, tipo, entity):
             with ui.column().classes("items-center w-full mt-2"):
                 subir_archivo_ui(dialog, tipo, entity)
                 # Close Button
-                ui.button("Cerrar", icon="close", color="red-600", on_click=dialog.close).classes("mt-4 w-1/4")
+                ui.button("Cerrar", icon="close", color="red", on_click=dialog.close).classes("mt-4 w-1/4").props("outline")
 
     dialog.open()
 
