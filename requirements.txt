@@ -2,3 +2,5 @@ nicegui
 numpy
 sqlalchemy
 pydantic
+pandas
+openpyxl

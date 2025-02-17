@@ -49,7 +49,7 @@ def agregar_archivo(dialog, file, tipo, entity):
     
     # Refresh the corresponding UI
     if tipo == "grafico":
-        administrar_graficos(dialog)
+        pass
     else:
         mostrar_archivos(dialog, tipo, entity)
 
@@ -64,7 +64,7 @@ def eliminar_archivo(dialog, archivo_id, tipo, entity):
     
     # Refresh UI accordingly
     if tipo == "grafico":
-        administrar_graficos(dialog)
+        pass
     else:
         mostrar_archivos(dialog, tipo, entity)
 
@@ -98,42 +98,39 @@ def mostrar_archivos(dialog, tipo, entity):
             subir_archivo_ui(dialog, tipo, entity)
     dialog.open()
 
-def administrar_graficos(dialog):
+def administrar_graficos():
     """
     Displays the UI for managing graficos, allowing users to upload a new Excel file to create a Grafico
     and delete existing ones.
     """
-    dialog.clear()
     graficos = Grafico.obtener_graficos()
 
-    with dialog:
-        with ui.card():
-            ui.label("Gestión de Gráficos")
+    with ui.card():
+        ui.label("Gestión de Gráficos")
 
-            # Upload section
-            with ui.row():
-                ui.upload(
-                    label="Subir Excel",
-                    auto_upload=True,
-                    on_upload=lambda file: agregar_grafico(dialog, file)
-                )
+        # Upload section
+        with ui.row():
+            ui.upload(
+                label="Subir Excel",
+                auto_upload=True,
+                on_upload=lambda file: agregar_grafico( file)
+            )
 
-            ui.separator()
-            ui.markdown("### Gráficos Existentes")
+        ui.separator()
+        ui.markdown("### Gráficos Existentes")
 
-            if not graficos:
-                ui.label("No hay gráficos registrados.")
-            else:
-                for grafico in graficos:
-                    with ui.row():
-                        ui.label(f"{grafico.nombre} ({grafico.tipo})")
-                        if grafico.archivo:
-                            ui.button("Abrir", on_click=lambda r=grafico.archivo.ruta_archivo: abrir_archivo(r))
-                            ui.button("Eliminar", on_click=lambda g=grafico.id: eliminar_grafico(dialog, g))
+        if not graficos:
+            ui.label("No hay gráficos registrados.")
+        else:
+            for grafico in graficos:
+                with ui.row():
+                    ui.label(f"{grafico.nombre} ({grafico.tipo})")
+                    if grafico.archivo:
+                        ui.button("Abrir", on_click=lambda r=grafico.archivo.ruta_archivo: abrir_archivo(r))
+                        ui.button("Eliminar", on_click=lambda g=grafico.id: eliminar_grafico(g))
 
-    dialog.open()
 
-def agregar_grafico(dialog, file):
+def agregar_grafico(file):
     """
     Handles the upload of an Excel file to create a new Grafico entry.
     Ensures that each Grafico has only one file.
@@ -160,12 +157,12 @@ def agregar_grafico(dialog, file):
     finally:
         session.close()
     
-    administrar_graficos(dialog)
+    administrar_graficos()
 
-def eliminar_grafico(dialog, grafico_id):
+def eliminar_grafico(grafico_id):
     """
     Deletes a Grafico entry and its associated file.
     :param grafico_id: ID of the grafico to delete
     """
     Grafico.eliminar_grafico(grafico_id)
-    administrar_graficos(dialog)
+    administrar_graficos()

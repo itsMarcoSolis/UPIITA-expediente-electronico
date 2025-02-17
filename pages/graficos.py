@@ -2,7 +2,7 @@ import os
 import theme
 from nicegui import ui
 from models.grafico import Grafico
-from utils.file_upload import administrar_graficos
+from utils.plotter import display_grafico
 
 def render_page():
     with theme.frame('Gráficos'):
@@ -20,7 +20,7 @@ def render_page():
 
         ui.separator()
 
-        with ui.row().style("justify-content: space-between; width: 100%"):
+        with ui.row().classes("justify-between w-full"):
             ui.markdown("## Lista de Gráficos")
             ui.input(
                 placeholder="Buscar por nombre...",
@@ -28,7 +28,7 @@ def render_page():
             )
 
         lista = ui.column()
-        graficos_dialog = ui.dialog()
+        grafico_display = None  # Placeholder for selected gráfico UI
 
         def actualizar_lista(filtro=""):
             lista.clear()
@@ -37,10 +37,20 @@ def render_page():
 
             for grafico in graficos_filtrados:
                 with lista:
-                    with ui.row():
-                        ui.label(f"{grafico.id} - {grafico.nombre}, {grafico.tipo}")
-                        ui.button("Ver Archivos", on_click=lambda g=grafico: administrar_graficos(graficos_dialog))
-                        ui.button("Eliminar", color="red", on_click=lambda g=grafico: eliminar_grafico(g.id))
+                    ui.button(
+                        f"{grafico.id} - {grafico.nombre}, {grafico.tipo}",
+                        on_click=lambda g=grafico: seleccionar_grafico(g)
+                    ).classes("w-full text-left")
+
+        def seleccionar_grafico(grafico):
+            """
+            Updates the UI to show the selected gráfico's details.
+            """
+            nonlocal grafico_display
+            if grafico_display:
+                grafico_display.clear()
+
+            grafico_display = display_grafico(grafico)
 
         def agregar_nuevo_grafico(file):
             """
@@ -48,14 +58,7 @@ def render_page():
             """
             ui.notify(f"Subiendo gráfico: {file.name}", color="blue")
             from utils.file_upload import agregar_grafico
-            agregar_grafico(graficos_dialog, file)
-            actualizar_lista()
-
-        def eliminar_grafico(grafico_id):
-            """
-            Deletes a gráfico and updates the UI.
-            """
-            Grafico.eliminar_grafico(grafico_id)
+            agregar_grafico(file)  # Passing None since there's no dialog
             actualizar_lista()
 
         actualizar_lista()
