@@ -18,7 +18,7 @@ def display_grafico(grafico):
     if grafico_container:
         grafico_container.clear()
     else:
-        grafico_container = ui.column().classes("mt-4 p-4 border border-gray-300 rounded-lg")
+        grafico_container = ui.column().classes("mt-4 p-4 border border-gray-300 rounded-lg w-full")
 
     # Attempt to read the file
     try:
@@ -63,7 +63,7 @@ def display_grafico(grafico):
     actualizar_info()  # Load UI initially
     return grafico_container
 
-def process_selected_sheet(xls, sheet_name, container):
+def process_selected_sheet(xls: pd.ExcelFile, sheet_name, container):
     """
     Reads the selected sheet, identifies its type, and processes it accordingly.
     """
@@ -93,26 +93,65 @@ def process_inscritos_por_carrera(df, container):
     """
     Processes a sheet that follows the 'inscritos_por_carrera' format and generates a bar chart.
     """
-    df = df[["nombre_carrera", "inscritos"]]  # Keep only relevant columns
+    df = df[["nombre_carrera", "inscritos"] + [col for col in ["plan_estud", "semestre"] if col in df.columns]].copy()
 
-    # Remove any row where "nombre_carrera" is "Total" or "Fecha de corte"
+    # Identify rows where all columns except 'inscritos' are empty or NaN
+    empty_except_inscritos = df.drop(columns=["inscritos"]).apply(lambda row: row.isna().all(), axis=1)
+
+    # Normalize data using .loc[] to avoid SettingWithCopyWarning
+    df.loc[:, "nombre_carrera"] = df["nombre_carrera"].astype(str).str.strip()
+    # Explicitly convert to string to prevent dtype mismatches
+    if "plan_estud" in df.columns:
+        df["plan_estud"] = df["plan_estud"].astype("object")  # Force object dtype first
+        df["plan_estud"] = df["plan_estud"].astype(str).str.replace(r"\.0$", "", regex=True)
+
+    if "semestre" in df.columns:
+        df["semestre"] = df["semestre"].astype("object")  # Force object dtype first
+        df["semestre"] = df["semestre"].astype(str).str.replace(r"\.0$", "", regex=True)
+
+
+
+
+    # Convert empty strings to NaN for consistency
+    df.replace("", pd.NA, inplace=True)
+
+    # Identify special rows
     total_row = df[df["nombre_carrera"].str.lower() == "total"]
     fecha_row = df[df["nombre_carrera"].str.lower().str.contains("fecha de corte", na=False)]
     corte_row = df[df["nombre_carrera"].str.lower().str.startswith("corte", na=False)]
-    
-    df = df[
+
+    # Identify rows where all columns except 'inscritos' are NaN or empty
+
+
+    # Filter valid data for the chart
+    df_filtered = df[
         ~df["nombre_carrera"].str.lower().isin(["total"]) & 
         ~df["nombre_carrera"].str.lower().str.contains("fecha de corte", na=False) & 
-        ~df["nombre_carrera"].str.lower().str.startswith("corte", na=False)
+        ~df["nombre_carrera"].str.lower().str.startswith("corte", na=False) & 
+        ~empty_except_inscritos
     ]
+
+    # Extract total value if present
+    total_value = df.loc[empty_except_inscritos, "inscritos"].dropna().values
+    total_value = total_value[0] if len(total_value) > 0 else None
+
+    # Format labels for the x-axis
+    labels = []
+    for _, row in df_filtered.iterrows():
+        label = row["nombre_carrera"]
+        if "semestre" in df_filtered.columns and pd.notna(row["semestre"]):
+            label += f", Semestre {row['semestre']}"
+        elif "plan_estud" in df_filtered.columns and pd.notna(row["plan_estud"]):
+            label += f", Plan {row['plan_estud']}"
+        labels.append(label)
 
     # Generate bar chart
     with container:
         chart = ui.highchart({
             'title': False,
             'chart': {'type': 'bar'},
-            'xAxis': {'categories': df["nombre_carrera"].tolist()},
-            'series': [{'name': 'Inscritos', 'data': df["inscritos"].tolist()}],
+            'xAxis': {'categories': labels},
+            'series': [{'name': 'Inscritos', 'data': df_filtered["inscritos"].tolist()}],
         }).classes('w-full h-64')
 
         # Display Total if exists
@@ -130,9 +169,13 @@ def process_inscritos_por_carrera(df, container):
                 extra_value = corte_row.iloc[0, 1] if pd.notna(corte_row.iloc[0, 1]) else None
                 inscritos_value = corte_row["inscritos"].values[0] if "inscritos" in corte_row else None
 
-                if extra_value and not "nan":
+                if extra_value and not pd.isna(extra_value):
                     corte_label += f": {extra_value}"
-                elif inscritos_value and not "nan":
+                elif inscritos_value and not pd.isna(inscritos_value):
                     corte_label += f": {inscritos_value}"
 
             ui.label(corte_label).classes("italic mt-2")
+
+        # Display case when only "inscritos" is populated
+        if total_value:
+            ui.label(f"Total: {total_value}").classes("font-bold mt-2")

@@ -27,7 +27,7 @@ def render_page():
                 on_change=lambda e: actualizar_lista(e.value)
             )
 
-        lista = ui.column()
+        lista = ui.column().classes("w-full")
         grafico_display = None  # Placeholder for selected gráfico UI
 
         def actualizar_lista(filtro=""):
