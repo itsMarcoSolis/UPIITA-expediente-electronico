@@ -13,7 +13,7 @@ def frame(navtitle: str):
         yield
     with ui.header().classes(replace='row items-center') as header:
         ui.button(on_click=lambda: left_drawer.toggle(), icon='menu').props('flat color=white')
-        ui.label('Getting Started').classes('font-bold')
+        ui.label('UPIITA - Expediente electrónico').classes('font-bold')
 
     with ui.footer(value=False) as footer:
         ui.label('Footer')

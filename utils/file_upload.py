@@ -16,7 +16,7 @@ def subir_archivo_ui(dialog, tipo, entity):
     :param entity: Object representing the entity (Alumno, Asociacion, or Grafico)
     """
     ui.upload(
-        label="Subir Archivo",
+        label="📤 Subir nuevo archivo",
         auto_upload=True,
         on_upload=lambda file: agregar_archivo(dialog, file, tipo, entity)
     )
@@ -71,32 +71,48 @@ def eliminar_archivo(dialog, archivo_id, tipo, entity):
 def abrir_archivo(ruta):
     """
     Opens a file with the default system program.
-    :param ruta: Path to the file
+    If no application is associated, shows an error popup.
     """
-    os.startfile(ruta)
+    try:
+        os.startfile(ruta)
+    except OSError as e:
+        ui.notify(f"❌ No se puede abrir el archivo.\n{str(e)}", color="red", position="top", duration=5)
+
 
 def mostrar_archivos(dialog, tipo, entity):
     """
-    Displays the file list UI for a given entity.
-    :param tipo: 'alumno' or 'asociacion'
+    Displays the file list UI for a given entity in an improved, more spacious dialog.
+    :param tipo: 'alumno', 'asociacion', or 'grafico'
     :param entity: Object representing the entity
     """
     dialog.clear()
     archivos = Archivo.obtener_archivos(tipo, entity.id)
-    
+
     with dialog:
-        with ui.card():
-            ui.label(f"Expediente de {entity.nombre}")
+        with ui.card().classes("w-2/3 max-w-3xl p-6"):
+            ui.label(f"📁 Expediente de {entity.nombre}").classes("text-xl font-bold mb-2")
+
             if not archivos:
-                ui.label("Aún no hay archivos para esta entidad.")
+                ui.label("Aún no hay archivos para esta entidad.").classes("text-gray-500 italic mb-4")
             else:
-                for archivo in archivos:
-                    with ui.row():
-                        ui.label(archivo.nombre_archivo)
-                        ui.button("Abrir", on_click=lambda r=archivo.ruta_archivo: abrir_archivo(r))
-                        ui.button("Eliminar", on_click=lambda a=archivo.id: eliminar_archivo(dialog, a, tipo, entity))
-            subir_archivo_ui(dialog, tipo, entity)
+                with ui.column().classes("max-h-80 overflow-auto w-full"):
+                    for archivo in archivos:
+                        with ui.row().classes("justify-between items-center w-full p-2 border-b"):
+                            ui.label(archivo.nombre_archivo).classes("flex-grow text-sm")
+                            with ui.row():
+                                ui.button(icon="folder_open", on_click=lambda r=archivo.ruta_archivo: abrir_archivo(r)).props("flat round color=blue")
+                                ui.button(icon="delete", on_click=lambda a=archivo.id: eliminar_archivo(dialog, a, tipo, entity)).props("flat round color=red")
+
+            ui.separator()
+
+            # Upload section
+            with ui.column().classes("items-center w-full mt-2"):
+                subir_archivo_ui(dialog, tipo, entity)
+                # Close Button
+                ui.button("Cerrar", icon="close", color="red-600", on_click=dialog.close).classes("mt-4 w-1/4")
+
     dialog.open()
+
 
 def administrar_graficos():
     """
