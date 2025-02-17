@@ -40,7 +40,7 @@ def render_page():
                 with lista:
                     with ui.row():
                         ui.label(f"{alumno.id} - {alumno.boleta}, {alumno.nombre}, {alumno.correo}, {alumno.carrera}")
-                        ui.button("Ver Archivos", on_click=lambda a=alumno: mostrar_archivos(expediente_dialog, "alumno", a.id))
+                        ui.button("Ver Archivos", on_click=lambda a=alumno: mostrar_archivos(expediente_dialog, "alumno", a))
                         ui.button("Editar", on_click=lambda a=alumno: editar_alumno(a))
 
         def editar_alumno(alumno: Alumno):

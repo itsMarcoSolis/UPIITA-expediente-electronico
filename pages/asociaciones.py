@@ -37,7 +37,7 @@ def render_page():
                             ui.label(f"{asociacion.nombre} - Asesor: {asociacion.asesor}")
 
                             # Add "View Files" Button
-                            ui.button("Ver Archivos", on_click=lambda a=asociacion: mostrar_archivos(expediente_dialog, "asociacion", a.id))
+                            ui.button("Ver Archivos", on_click=lambda a=asociacion: mostrar_archivos(expediente_dialog, "asociacion", a))
 
                         # Add Group Section
                         with ui.input("Nuevo grupo").bind_value_to(
