@@ -8,6 +8,7 @@ from database import Base, obtener_sesion, app_data_path
 FILES_DIR = os.path.join(app_data_path, "files")
 ALUMNOS_FILES_DIR = os.path.join(FILES_DIR, "alumnos")
 ASOCIACIONES_FILES_DIR = os.path.join(FILES_DIR, "asociaciones")
+GRAFICOS_FILES_DIR = os.path.join(FILES_DIR, "graficos")
 
 # Ensure directories exist
 os.makedirs(FILES_DIR, exist_ok=True)
@@ -20,20 +21,22 @@ class Archivo(Base):
     ruta_archivo = Column(String, nullable=False, unique=True)
     fecha_subida = Column(DateTime, default=datetime.utcnow)
 
-    # The file can be linked to either an Alumno or an Asociacion
+    # The file can be linked to an Alumno, Asociacion, or Grafico
     alumno_id = Column(Integer, ForeignKey("alumnos.id"), nullable=True)
     asociacion_id = Column(Integer, ForeignKey("asociaciones.id"), nullable=True)
+    grafico_id = Column(Integer, ForeignKey("graficos.id"), nullable=True)
 
     alumno = relationship("Alumno", back_populates="archivos")
     asociacion = relationship("Asociacion", back_populates="archivos")
+    grafico = relationship("Grafico", back_populates="archivo")
 
     @staticmethod
     def agregar_archivo(nombre_archivo, contenido, tipo, entity_id):
         """
-        Add a file linked to an Alumno or Asociacion.
+        Add a file linked to an Alumno, Asociacion, or Grafico.
         :param nombre_archivo: Name of the file
         :param contenido: File binary content
-        :param tipo: 'alumno' or 'asociacion'
+        :param tipo: 'alumno', 'asociacion', or 'grafico'
         :param entity_id: ID of the associated entity
         """
         session = obtener_sesion()
@@ -45,12 +48,15 @@ class Archivo(Base):
         elif tipo == "asociacion":
             ruta_directorio = os.path.join(ASOCIACIONES_FILES_DIR, str(entity_id))
             archivo = Archivo(asociacion_id=entity_id)
+        elif tipo == "grafico":
+            ruta_directorio = GRAFICOS_FILES_DIR
+            archivo = Archivo(grafico_id=entity_id)
         else:
-            raise ValueError("Tipo de archivo no válido. Usa 'alumno' o 'asociacion'.")
+            raise ValueError("Tipo de archivo no válido. Usa 'alumno', 'asociacion' o 'grafico'.")
 
         # Ensure entity-specific directory exists
         os.makedirs(ruta_directorio, exist_ok=True)
-        
+
         # Store the file
         ruta_archivo = os.path.join(ruta_directorio, nombre_archivo)
         with open(ruta_archivo, "wb") as f:
@@ -85,8 +91,8 @@ class Archivo(Base):
     @staticmethod
     def obtener_archivos(tipo, entity_id):
         """
-        Get all files for a given student or organization.
-        :param tipo: 'alumno' or 'asociacion'
+        Get all files for a given student, association, or grafico.
+        :param tipo: 'alumno', 'asociacion', or 'grafico'
         :param entity_id: The entity ID
         """
         session = obtener_sesion()
@@ -94,6 +100,8 @@ class Archivo(Base):
             archivos = session.query(Archivo).filter_by(alumno_id=entity_id).all()
         elif tipo == "asociacion":
             archivos = session.query(Archivo).filter_by(asociacion_id=entity_id).all()
+        elif tipo == "grafico":
+            archivos = session.query(Archivo).filter_by(grafico_id=entity_id).all()
         else:
             raise ValueError("Tipo no válido.")
 
