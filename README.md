@@ -1,49 +1,74 @@
-# UPIITA - Expediente Electrónico
+# 📌 Expediente Electrónico
 
-## Descripción
-Sistema de gestión local para el almacenamiento y administración de expedientes electrónicos de alumnos. Permite la carga de documentos, la gestión de asociaciones escolares y la visualización de gráficos relevantes.
+## 📖 Descripción
+Expediente Electrónico es una aplicación diseñada para gestionar información de alumnos, asociaciones y gráficos de manera eficiente. Utiliza **NiceGUI** para proporcionar una interfaz de usuario moderna y amigable, junto con herramientas de visualización de datos como **Highcharts**.
 
-## Características Principales
-- Búsqueda de alumnos por número de boleta.
-- Módulo para subir y administrar documentos PDF e imágenes.
-- Registro y administración de asociaciones escolares.
-- Creación de grupos dentro de las asociaciones.
-- Visualización de datos a través de gráficos.
+## 🚀 Características
+- 📂 **Gestión de Alumnos**: Registro, edición, importacion y manejo de alumnos con datos clave.
+- 🏫 **Administración de Asociaciones**: Creación de asociaciones, gestión de miembros y archivos.
+- 📊 **Visualización de Datos**: Carga y análisis de archivos Excel con gráficos interactivos.
+- 📁 **Manejo de Archivos**: Subida y eliminación de archivos relacionados con alumnos y asociaciones.
+- 🎨 **Interfaz Intuitiva**: UI moderna y dinámica con NiceGUI.
 
-## Tecnologías Utilizadas
-- **Backend:** Python con FastAPI
-- **Frontend:** NiceGUI
-- **Base de Datos:** SQLite
-- **Autenticación:** JWT para gestión de usuarios
-- **Almacenamiento de archivos:** Sistema de archivos local
+## 🛠️ Instalación
+### 1️⃣ Requisitos Previos
+- **Python 3.10+**
+- **Virtualenv (Opcional pero recomendado)**
 
-## Instalación
-1. Clonar el repositorio:
-   ```bash
-   git clone https://github.com/itsMarcoSolis/UPIITA-expediente-electronico.git
-   cd UPIITA-expediente-electronico
-   ```
-2. Crear un entorno virtual e instalar dependencias:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # En Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-3. Ejecutar la aplicación:
-   ```bash
-   python main.py
-   ```
+### 2️⃣ Clonar el Repositorio
+```sh
+git clone https://github.com/tu-usuario/expediente-electronico.git
+cd expediente-electronico
+```
 
-## Uso
-- Acceder a la interfaz a través de `http://localhost:8000`
-- Iniciar sesión con un usuario autorizado
-- Gestionar expedientes y asociaciones desde el panel de control
+### 3️⃣ Crear un Entorno Virtual (Opcional)
+```sh
+python -m venv env
+source env/bin/activate  # En Linux/macOS
+env\Scripts\activate  # En Windows
+```
 
-## Seguridad
-- Autenticación basada en JWT
-- Restricción de acceso por roles
-- Almacenamiento seguro de documentos
+### 4️⃣ Instalar Dependencias
+```sh
+pip install -r requirements.txt
+```
 
-## Contacto
-Para reportar errores o sugerencias, abre un issue en el repositorio o contacta con el equipo de desarrollo.
+## ▶️ Uso
+Para ejecutar la aplicación:
+```sh
+python main.py
+```
+La aplicación se ejecutará en `http://localhost:8000`
 
+## 📦 Generar un Ejecutable (Windows)
+Si deseas empaquetar la aplicación en un `.exe`, usa **PyInstaller**:
+```sh
+pyinstaller main.spec
+```
+Si **Highcharts no carga correctamente**, modifica `main.spec` para incluir archivos `.js` y `.css`.
+
+## ⚙️ Estructura del Proyecto
+```
+expediente-electronico/
+│-- static/          # Archivos estáticos (favicon, CSS, etc.)
+│-- pages/           # Páginas de la aplicación (alumnos, asociaciones, gráficos)
+│-- models/          # Modelos SQLAlchemy para la base de datos
+│-- utils/           # Funciones auxiliares (carga de archivos, gráficos, etc.)
+│-- database.py      # Configuración de la base de datos SQLite
+│-- main.py          # Punto de entrada de la aplicación
+│-- requirements.txt # Dependencias del proyecto
+```
+
+
+## 🏗️ Tecnologías Utilizadas
+- **NiceGUI** → UI moderna y personalizable
+- **SQLAlchemy** → Base de datos SQLite
+- **Highcharts** → Visualización de datos interactiva
+- **PyInstaller** → Empaquetado en ejecutable
+
+## 📜 Licencia
+MIT License © 2024 - Expediente Electrónico
+
+
+---
+_¡Gracias por usar Expediente Electrónico! 🚀_
