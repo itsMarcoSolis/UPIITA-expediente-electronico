@@ -6,4 +6,5 @@ sqlalchemy
 pydantic
 pandas
 openpyxl
-pywin32 
+pywin32
+pyinstaller
